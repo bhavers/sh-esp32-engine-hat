@@ -1,9 +1,36 @@
 # Engine Monitor based on SH-ESP32 with Engine Hat, SensESP and SignalK
 
-This repository provides code for the [SH-ESP](https://docs.hatlabs.fi/sh-esp32/) board with the [Engine Top Hat](https://hatlabs.fi/product/sh-esp32-engine-top-hat-kit/) add-on board to monitor engine, fuel tank and environmental data.
-It is based on the [SensESP](https://github.com/SignalK/SensESP/) 3.x library. This repo is forked of the [SenseSP 3.x Starter Template](https://github.com/SensESP/SensESP-project-template). Example code from the [Engine Hat firmware repo](https://github.com/hatlabs/SH-ESP32-engine-hat-firmware) is customized and added.
+This repository provides code for the [SH-ESP32](https://docs.hatlabs.fi/sh-esp32/) with the [Engine Top Hat](https://docs.hatlabs.fi/sh-esp32/pages/add-ons/engine-hat/) (discontinued product, successor is [HALMET](https://shop.hatlabs.fi/products/halmet)) to monitor engine, fuel tank and environmental data.
+It is based on the [SensESP](https://github.com/SignalK/SensESP/) 3.x library.
 
-With this code running on a SH-ESP with Engine Top hat, the device sends signalk formatted data to a [signalk-server](https://github.com/SignalK/signalk-server), which can make it available through [signalk-to-nmea2000](https://github.com/SignalK/signalk-to-nmea2000) plugin on the NMEA2000 / STNG bus.
+With this code running on a SH-ESP with Engine Top hat, the device sends [signalk](https://signalk.org/) formatted data to a [signalk-server](https://github.com/SignalK/signalk-server), which can make it available through [signalk-to-nmea2000](https://github.com/SignalK/signalk-to-nmea2000) plugin on the NMEA2000 / STNG bus.
+
+```mermaid
+flowchart LR
+    subgraph enginemonitor[Engine Monitor]
+        direction TB
+        hat["Engine Top Hat"] --> shesp32[SH-ESP32]
+    end
+    subgraph boatserver["Raspberry Pi"]
+        direction TB
+        signalkserver["signalk-server"] --> plugin[plugins]
+    end
+    subgraph clients["Clients"]
+        direction TB
+        n2kclient["NMEA MFD"] ~~~
+        udpclient["iPad Navionics"] ~~~
+        signalkclient["WilhelmSK"]
+    end
+    analog[Analog Sensors] -->|sensor readings| enginemonitor
+    digital[Digital Sensors] -->|sensor readings| enginemonitor
+    1wire[1-Wire Sensors] -->|sensor readings
+    over 1-wire| enginemonitor
+    enginemonitor  -->|signalk data over Wifi
+    websocket| boatserver
+    boatserver -->|NMEA2000 PGNs| clients
+    boatserver -->|NMEA0183 over UDP| clients
+    boatserver -->|signalk over TCP| clients
+```
 
 I have the solution connected to a Volvo Penta MD2020 engine, this is what it looks like:
 ![Solution based on SH-ESP32 and Engine Hat](SH-ESP32-engine-hat.png)
@@ -49,7 +76,9 @@ Explanation of this table:
 Useful resources:
 
 - [Getting Started](https://signalk.org/SensESP/pages/getting_started/) with SensESP.
-- [Examples](https://github.com/SignalK/SensESP/tree/main/examples) for implementing of sensors (coolant temperature sender, 1-wire sensors, RPM counters, etc) in SenseESP.
+- [SensESP examples code](https://github.com/SignalK/SensESP/tree/main/examples) for implementing sensors (coolant temperature sender, 1-wire sensors, RPM counters, etc).
+- [SenseSP 3.x Starter Template](https://github.com/SensESP/SensESP-project-template), used as base for this project.
+- Example code for the [Engine Top Hat](https://github.com/hatlabs/SH-ESP32-engine-hat-firmware).
 - Previous [bhavers/SH-ESP32-engine-hat-firmware](https://github.com/bhavers/SH-ESP32-engine-hat-firmware) repository based on SensESP 2.x which is not maintained anymore. The repo is archived.
 
 # Credits
