@@ -21,12 +21,12 @@ flowchart LR
         udpclient["iPad Navionics"] ~~~
         signalkclient["WilhelmSK"]
     end
-    analog[Analog Sensors
-    (eg cooling water, fuel tank)] -->|sensor readings| enginemonitor
-    digital[Digital Sensors
-    (eg RPM, alarms)] -->|sensor readings| enginemonitor
-    1wire[1-Wire Sensors
-    (eg oil temp, humidity (BME))] -->|sensor readings
+    analog["Analog Sensors
+    (eg cooling water, fuel tank)"] -->|sensor readings| enginemonitor
+    digital["Digital Sensors
+    (eg RPM, alarms)"] -->|sensor readings| enginemonitor
+    1wire["1-Wire Sensors
+    (eg oil temp, humidity (BME))"] -->|sensor readings
     over 1-wire| enginemonitor
     enginemonitor  -->|signalk data over Wifi
     websocket| boatserver
