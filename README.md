@@ -18,8 +18,8 @@ flowchart LR
     subgraph clients["Clients"]
         direction TB
         n2kclient["NMEA MFD"] ~~~
-        udpclient["iPad Navionics"] ~~~
-        signalkclient["WilhelmSK"]
+        udpclient["iPad Navigation apps"] ~~~
+        signalkclient["Signalk apps (WilhelmSK, KIP, FreeboardSK)"]
     end
     analog["Analog Sensors
     (eg cooling water, fuel tank)"] -->|sensor readings| enginemonitor
