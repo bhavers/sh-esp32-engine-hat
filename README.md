@@ -22,9 +22,9 @@ flowchart LR
         signalkclient["WilhelmSK"]
     end
     analog[Analog Sensors
-    (eg. cooling water, fuel tank)] -->|sensor readings| enginemonitor
+    (eg cooling water, fuel tank)] -->|sensor readings| enginemonitor
     digital[Digital Sensors
-    (eg. RPM, alarms)] -->|sensor readings| enginemonitor
+    (eg RPM, alarms)] -->|sensor readings| enginemonitor
     1wire[1-Wire Sensors
     (eg oil temp, humidity (BME))] -->|sensor readings
     over 1-wire| enginemonitor
