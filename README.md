@@ -30,7 +30,7 @@ flowchart LR
     over 1-wire| enginemonitor
     enginemonitor  -->|signalk data over Wifi
     websocket| boatserver
-    boatserver -->|NMEA2000 PGNs| clients
+    boatserver -->|PGN over NMEA2000| clients
     boatserver -->|NMEA0183 over UDP| clients
     boatserver -->|signalk over TCP| clients
 ```
