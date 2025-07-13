@@ -13,6 +13,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "sensesp.h"
+#include "sensesp/ui/config_item.h"
 #include "sensesp/sensors/analog_input.h"
 #include "sensesp/sensors/digital_input.h"
 #include "sensesp/sensors/sensor.h"
@@ -24,10 +25,12 @@
 #include "sensesp/transforms/moving_average.h"
 #include "sensesp_app_builder.h"
 #include <Adafruit_BME280.h>
-#include <Wire.h>
-// #include "sensesp_onewire/onewire_temperature.h"
+// #include <Wire.h>
+#include "sensesp_onewire/onewire_temperature.h"
 
+using namespace reactesp;
 using namespace sensesp;
+using namespace sensesp::onewire;
 
 // Global definitions
 const float kAnalogInputScale = 29. / 2.048; // ADS1115 input hardware scale factor (input voltage vs voltage at ADS1115)
@@ -196,15 +199,16 @@ void setup() {
   bool ads_initialized = ads1115->begin(kADS1115Address, i2c);
   debugD("ADS1115 initialized: %d", ads_initialized);
 
-// Activate the 1-wires senders
-  // DallasTemperatureSensors* dts = new DallasTemperatureSensors(ONEWIRE_PIN);
-  // auto onewire_1_temp = new OneWireTemperature(dts, sensor_read_interval, config_onewire_1_address);
-  // auto onewire_2_temp = new OneWireTemperature(dts, sensor_read_interval, config_onewire_2_address);
-  // auto onewire_3_temp = new OneWireTemperature(dts, sensor_read_interval, config_onewire_3_address);
-  // onewire_1_temp->connect_to(new SKOutput<float>(value_onewire_1_sk_path, config_onewire_1_sk_path, onewire_1_metadata)); 
-  // onewire_2_temp->connect_to(new SKOutput<float>(value_onewire_2_sk_path, config_onewire_2_sk_path, onewire_2_metadata));
-  // onewire_3_temp->connect_to(new SKOutput<float>(value_onewire_3_sk_path, config_onewire_3_sk_path, onewire_3_metadata));
+  // Activate the 1-wires senders
+  DallasTemperatureSensors* dts = new DallasTemperatureSensors(ONEWIRE_PIN);
 
+  auto onewire_1_temp = new OneWireTemperature(dts, sensor_read_interval, config_onewire_1_address);
+  auto onewire_2_temp = new OneWireTemperature(dts, sensor_read_interval, config_onewire_2_address);
+  auto onewire_3_temp = new OneWireTemperature(dts, sensor_read_interval, config_onewire_3_address);
+  onewire_1_temp->connect_to(new SKOutput<float>(value_onewire_1_sk_path, config_onewire_1_sk_path, onewire_1_metadata)); 
+  onewire_2_temp->connect_to(new SKOutput<float>(value_onewire_2_sk_path, config_onewire_2_sk_path, onewire_2_metadata));
+  onewire_3_temp->connect_to(new SKOutput<float>(value_onewire_3_sk_path, config_onewire_3_sk_path, onewire_3_metadata));
+  
 
 
   // Temperature sensor setup
