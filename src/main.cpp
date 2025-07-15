@@ -25,7 +25,7 @@
 #include "sensesp/transforms/moving_average.h"
 #include "sensesp_app_builder.h"
 #include <Adafruit_BME280.h>
-// #include <Wire.h>
+#include <Wire.h>
 #include "sensesp_onewire/onewire_temperature.h"
 
 using namespace reactesp;
@@ -146,8 +146,6 @@ float read_temp_callback() { return (bme280.readTemperature() + 273.15);}
 float read_pressure_callback() { return (bme280.readPressure());}
 float read_humidity_callback() { return (bme280.readHumidity());}
 
-// TODO: Ook nog onewires aansluiten.
-
 // Convenience: print the addresses found on the I2C bus
 void ScanI2C(TwoWire* i2c) {
   uint8_t error, address;
@@ -175,6 +173,9 @@ void ScanI2C(TwoWire* i2c) {
 // The setup function performs one-time application initialization.
 void setup() {
   SetupLogging(ESP_LOG_DEBUG);
+  Serial.begin(115200);
+
+  Serial.println("Starting SensESP Engine Hat application..."); 
 
   // Construct the global SensESPApp() object
   SensESPAppBuilder builder;
@@ -187,6 +188,19 @@ void setup() {
                     //->set_wifi_access_point("My AP SSID", "my_ap_password")
                     //->set_sk_server("192.168.10.3", 80)
                     ->get_app();
+
+
+  // Serial.println(F("BME280 test"));
+  // Wire.begin(kSDAPin, kSCLPin);
+  // bool status2;
+  // status2 = bme280.begin();
+  // if (!status2) {
+  //   Serial.println("Could not find a valid BME280 sensor, check wiring!");
+  //   // while (1);
+  // }
+  // Serial.print("Pressure = ");
+  // Serial.print(bme280.readPressure() / 100.0F);
+  // Serial.println(" hPa");
 
  // initialize the I2C bus
   i2c = new TwoWire(0);
@@ -209,6 +223,23 @@ void setup() {
   onewire_2_temp->connect_to(new SKOutput<float>(value_onewire_2_sk_path, config_onewire_2_sk_path, onewire_2_metadata));
   onewire_3_temp->connect_to(new SKOutput<float>(value_onewire_3_sk_path, config_onewire_3_sk_path, onewire_3_metadata));
   
+
+  // TODO: Uitbreiden config items, ip van sensesp is 192.168.9.170 
+  // Nog checken of deze config ok is. 
+  // @see https://github.com/SensESP/OneWire/blob/main/examples/onewire_temperature/onewire_temperature_example.cpp
+
+  ConfigItem(onewire_1_temp)
+        ->set_title("Outside Temperature")
+        ->set_description("Temperature of the engine coolant")
+        ->set_sort_order(101);
+  ConfigItem(onewire_2_temp)
+        ->set_title("Engine Room Temperature")
+        ->set_description("Temperature of the engine room")
+        ->set_sort_order(102);
+  ConfigItem(onewire_3_temp)
+        ->set_title("Oil Temperature")
+        ->set_description("Temperature of the oil in the engine")
+        ->set_sort_order(103);
 
 
   // Temperature sensor setup
@@ -345,6 +376,31 @@ engine1_temp_sender_resistance->connect_to(temp_curve)->connect_to(new SKOutputF
     ->connect_to(new SKOutputFloat(value_engine2_tach_revolutions_sk_path, config_engine2_revolutions_sk_path,metadata_engine_tach_revolutions));
 
 
+    // ===== BME280 ======
+    // Lijkt erop dat i2c al in gebruik is (zie bovenaan setup), zelfde error als hier: https://community.platformio.org/t/updating-espressif-32-to-5-2-0-breaks-wire-cpp/30282/2
+  Wire.begin(kSDAPin, kSCLPin);
+  // Wire.begin();
+  // unsigned status;
+  bool status;
+  status = bme280.begin();  
+  if (!status) {
+    Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+    Serial.print("SensorID was: 0x"); Serial.println(bme280.sensorID(),16);
+    Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
+    Serial.print("        ID of 0x56-0x58 represents a BMP 280,\n");
+    Serial.print("        ID of 0x60 represents a BME 280.\n");
+    Serial.print("        ID of 0x61 represents a BME 680.\n");
+    //while (1) delay(10);
+  }
+  // Create a RepeatSensor with float output that reads the temperature
+  // using the function defined above.
+  auto* bme280_temp = new RepeatSensor<float>(5000, read_temp_callback);
+  auto* bme280_pressure = new RepeatSensor<float>(10000, read_pressure_callback);
+  auto* bme280_humidity =  new RepeatSensor<float>(10000, read_humidity_callback);     
+  // Send the temperature to the Signal K server as a Float
+  bme280_temp->connect_to(new SKOutputFloat("environment.inside.enginehat.temperature"));
+  bme280_pressure->connect_to(new SKOutputFloat("environment.outside.pressure"));
+  bme280_humidity->connect_to(new SKOutputFloat("environment.outside.relativeHumidity"));
 
   
 
